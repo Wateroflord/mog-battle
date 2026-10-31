@@ -55,7 +55,7 @@ class PhotoSlot extends StatelessWidget {
                     const SizedBox(height: 12),
                     Text(label, style: TextStyle(fontWeight: FontWeight.w800, color: color, fontSize: 15)),
                     const SizedBox(height: 4),
-                    const Text('нажми, чтобы выбрать', style: TextStyle(color: C.muted, fontSize: 12)),
+                    const Text('нажми, чтобы выбрать', textAlign: TextAlign.center, style: TextStyle(color: C.muted, fontSize: 12)),
                   ])
                 : Stack(fit: StackFit.expand, children: [
                     Image.memory(photo!.full, fit: BoxFit.cover, gaplessPlayback: true),

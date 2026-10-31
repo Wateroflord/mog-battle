@@ -288,7 +288,13 @@ class KindPicker extends StatelessWidget {
             showSelectedIcon: false,
             segments: [
               for (final k in Kind.values)
-                ButtonSegment(value: k, label: Text(k.title), icon: Icon(k.icon, size: 18)),
+                ButtonSegment(
+                  value: k,
+                  label: FittedBox(
+                    fit: BoxFit.scaleDown,
+                    child: Text(k.title, maxLines: 1, softWrap: false),
+                  ),
+                ),
             ],
             selected: {value},
             onSelectionChanged: (s) => onChanged(s.first),
