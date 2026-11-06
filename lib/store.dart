@@ -93,5 +93,32 @@ class Store extends ChangeNotifier {
     await _saveHistory();
   }
 
+  /// История одним файлом (без ключа Gemini).
+  String exportHistory() => jsonEncode({'app': 'mog-battle', 'version': 1, 'items': history.map((e) => e.toJson()).toList()});
+
+  /// Добавить записи из копии (повторы по id пропускаются). Возвращает число добавленных.
+  Future<int> importHistory(String raw) async {
+    final Object? j;
+    try {
+      j = jsonDecode(raw.trim());
+    } catch (_) {
+      throw const FormatException('Это не файл резервной копии');
+    }
+    if (j is! Map || j['app'] != 'mog-battle') throw const FormatException('Это не копия Mog Battle');
+    final have = {for (final e in history) e.id};
+    final add = <HistoryEntry>[];
+    for (final m in (j['items'] as List? ?? const []).whereType<Map>()) {
+      try {
+        final e = HistoryEntry.fromJson(m);
+        if (have.add(e.id)) add.add(e);
+      } catch (_) {}
+    }
+    history = [...history, ...add]..sort((a, b) => b.date.compareTo(a.date));
+    if (history.length > maxHistory) history = history.sublist(0, maxHistory);
+    notifyListeners();
+    await _saveHistory();
+    return add.length;
+  }
+
   bool get hasKey => apiKey.trim().isNotEmpty;
 }

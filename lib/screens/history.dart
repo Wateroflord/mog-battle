@@ -7,6 +7,7 @@ import '../widgets.dart';
 import 'common.dart';
 import 'rate.dart' show fmtDate;
 import 'result.dart';
+import '../backup_io.dart';
 
 enum _Filter { all, battles, looks, style, synergy }
 
@@ -41,10 +42,43 @@ class _HistoryScreenState extends State<HistoryScreen> {
         _ => !e.battle && e.kind == _f.kind,
       };
 
+  Future<void> _backup(BuildContext context) async {
+    final m = ScaffoldMessenger.of(context);
+    try {
+      final path = await BackupIO.save('mog-battle-${BackupIO.stamp()}.json', Store.I.exportHistory());
+      if (path != null) m.showSnackBar(const SnackBar(content: Text('История сохранена')));
+    } catch (e) {
+      m.showSnackBar(SnackBar(content: Text('Не удалось сохранить: $e')));
+    }
+  }
+
+  Future<void> _restore(BuildContext context) async {
+    final m = ScaffoldMessenger.of(context);
+    try {
+      final text = await BackupIO.open();
+      if (text == null) return;
+      final n = await Store.I.importHistory(text);
+      m.showSnackBar(SnackBar(content: Text(n == 0 ? 'Новых записей нет' : 'Восстановлено записей: $n')));
+    } on FormatException catch (e) {
+      m.showSnackBar(SnackBar(content: Text(e.message)));
+    } catch (e) {
+      m.showSnackBar(SnackBar(content: Text('Не удалось восстановить: $e')));
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('История')),
+      appBar: AppBar(title: const Text('История'), actions: [
+        PopupMenuButton<String>(
+          tooltip: 'Резервная копия',
+          onSelected: (v) => v == 'save' ? _backup(context) : _restore(context),
+          itemBuilder: (_) => const [
+            PopupMenuItem(value: 'save', child: Text('Сохранить историю в файл')),
+            PopupMenuItem(value: 'restore', child: Text('Восстановить из файла')),
+          ],
+        ),
+      ]),
       body: StoreBuilder(builder: (context, s) {
         final items = s.history.where(_match).toList();
         final progress = _f.kind == null ? <HistoryEntry>[] : items.reversed.toList();

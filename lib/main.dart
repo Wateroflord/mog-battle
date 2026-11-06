@@ -6,11 +6,14 @@ import 'screens/rate.dart';
 import 'screens/settings.dart';
 import 'store.dart';
 import 'theme.dart';
+import 'package:winter_core/winter_core.dart';
 
-Future<void> main() async {
+void main() => runWinterApp(repo: 'mog-battle', appName: 'Mog Battle', body: _main);
+
+Future<void> _main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Store.I.load();
-  runApp(const MogApp());
+  runApp(WinterCrashBanner(child: const MogApp()));
 }
 
 class MogApp extends StatelessWidget {
